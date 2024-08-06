@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chinese Character SRS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            color: #000;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 36px;
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .character-card {
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f8f9fa;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        .character {
+            font-size: 36px;
+            color: #000;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .degree-title{
+            font-family: 'Playfair Display', serif;
+            font-size: 25px;
+            vertical-align: middle;
+            margin-top: 15px;            
+            margin-bottom: 15px;
+            color: #000;
+        }
+
+        .degree {
+            font-family: 'Playfair Display', serif;
+            display: inline-block;
+            background-color: #000;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            font-size: 20px;
+            vertical-align: middle;
+        }
+        .tab {
+            font-family: 'Playfair Display', serif;
+            display: inline-block;
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+        }
+        .tab.active {
+            background-color: #000;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            background-color: white;
+            padding: 20px;
+            border-radius: 0 8px 8px 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .input-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        input[type="text"], textarea, select {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        select {
+            width: auto;
+        }
+        button {
+            font-family: 'Playfair Display', serif;
+            background-color: #000;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #343a40;
+        }
+        .summary {
+            font-family: 'Playfair Display', serif;
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .notification {
+            font-family: 'Playfair Display', serif;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+        @media (min-width: 768px) {
+            body {
+                padding: 40px;
+            }
+            .container {
+                padding: 40px;
+            }
+            h1 {
+                font-size: 48px;
+            }
+            .character {
+                font-size: 48px;
+            }
+            .tab {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+            button {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chinese Character SRS</h1>
+        
+        <div class="summary" id="summary"></div>
+
+        <div id="inputTab">
+            <h2>Add New Characters</h2>
+            <textarea id="newCharacters" rows="3" placeholder="Enter characters"></textarea>
+            <div class="input-row">
+                <select id="newDegree">
+                    <option value="0">Degree 0</option>
+                    <option value="1">Degree 1</option>
+                    <option value="2">Degree 2</option>
+                    <option value="3">Degree 3</option>
+                    <option value="4">Degree 4</option>
+                    <option value="5">Degree 5</option>
+                    <option value="6">Degree 6</option>
+                </select>
+                <button onclick="addCharacters()">Add</button>
+            </div>
+
+            <h2>Edit Characters</h2>
+            <div class="input-row">
+                <select id="moveToDegree">
+                    <option value="0">Degree 0</option>
+                    <option value="1">Degree 1</option>
+                    <option value="2">Degree 2</option>
+                    <option value="3">Degree 3</option>
+                    <option value="4">Degree 4</option>
+                    <option value="5">Degree 5</option>
+                    <option value="6">Degree 6</option>
+                </select>
+                <button onclick="moveSelectedToDegree()">Move</button>
+                <button onclick="deleteSelected()">Delete</button>
+            </div>
+            <div id="characterList"></div>
+        </div>
+
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script>
+        let characters = JSON.parse(localStorage.getItem('characters')) || [];
+        let selectedIndices = [];
+
+        function displayCharacters() {
+            const list = document.getElementById('characterList');
+            list.innerHTML = '';
+            
+            for (let degree = 0; degree <= 6; degree++) {
+                const degreeChars = characters.filter(char => char.degree === degree);
+                if (degreeChars.length > 0) {
+                    const section = document.createElement('div');
+                    section.className = 'degree-section';
+                    section.innerHTML = `
+                        <div class="degree-title">Degree ${degree}</div>
+                        <div class="character-grid">
+                            ${degreeChars.map((char, index) => createCharacterCard(char, characters.indexOf(char))).join('')}
+                        </div>
+                    `;
+                    list.appendChild(section);
+                }
+            }
+            updateSummary();
+        }
+
+        function createCharacterCard(char, index) {
+            return `
+                <div class="character-card">
+                    <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
+                    <div class="character">${char.character}</div>
+                    <div class="next-review">${char.nextReview}</div>
+                </div>
+            `;
+        }
+
+        function addCharacters() {
+            const newChars = document.getElementById('newCharacters').value.trim();
+            const degree = parseInt(document.getElementById('newDegree').value);
+            if (newChars) {
+                const today = new Date().toISOString().split('T')[0];
+                const duplicates = [];
+                newChars.split('').forEach(char => {
+                    if (characters.some(c => c.character === char)) {
+                        duplicates.push(char);
+                    } else {
+                        characters.push({
+                            character: char,
+                            degree: degree,
+                            nextReview: getNextReviewDate(degree),
+                            lastReviewed: today
+                        });
+                    }
+                });
+                saveCharacters();
+                displayCharacters();
+                document.getElementById('newCharacters').value = '';
+                if (duplicates.length > 0) {
+                    showNotification(`Duplicate characters found: ${duplicates.join(', ')}`);
+                } else {
+                    showNotification('Characters added successfully!', 'success');
+                }
+            }
+        }
+
+        function getNextReviewDate(degree) {
+            const days = [1, 2, 4, 7, 15, 30, 90][degree];
+            const date = new Date();
+            date.setDate(date.getDate() + days);
+            return date.toISOString().split('T')[0];
+        }
+
+        function toggleSelection(index) {
+            const i = selectedIndices.indexOf(index);
+            if (i > -1) {
+                selectedIndices.splice(i, 1);
+            } else {
+                selectedIndices.push(index);
+            }
+        }
+
+        function moveSelectedToDegree() {
+            const degree = parseInt(document.getElementById('moveToDegree').value);
+            updateDegrees(selectedIndices, degree);
+        }
+
+        function updateDegrees(indices, newDegree) {
+            const today = new Date().toISOString().split('T')[0];
+            characters = characters.map((char, index) => {
+                if (indices.includes(index)) {
+                    return {
+                        ...char,
+                        degree: newDegree,
+                        nextReview: getNextReviewDate(newDegree),
+                        lastReviewed: today
+                    };
+                }
+                return char;
+            });
+            saveCharacters();
+            displayCharacters();
+            selectedIndices = [];
+            showNotification('Characters updated successfully!', 'success');
+        }
+
+        function deleteSelected() {
+            characters = characters.filter((_, index) => !selectedIndices.includes(index));
+            saveCharacters();
+            displayCharacters();
+            selectedIndices = [];
+            showNotification('Selected characters deleted successfully!', 'success');
+        }
+
+        function saveCharacters() {
+            localStorage.setItem('characters', JSON.stringify(characters));
+        }
+
+        function showNotification(message, type = 'error') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            notification.style.backgroundColor = type === 'success' ? '#d4edda' : '#f8d7da';
+            notification.style.color = type === 'success' ? '#155724' : '#721c24';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        function updateSummary() {
+            const totalCharacters = characters.length;
+            const today = new Date().toISOString().split('T')[0];
+            const dueCharacters = characters.filter(char => char.nextReview <= today).length;
+            const summary = document.getElementById('summary');
+            summary.innerHTML = `
+                <strong>Total Characters:</strong> ${totalCharacters} | 
+                <strong>Due for Review Today:</strong> ${dueCharacters}
+            `;
+        }
+
+        displayCharacters();
+    </script>
+</body>
+</html>
