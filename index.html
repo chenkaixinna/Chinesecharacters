@@ -49,6 +49,8 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
             position: relative;
+            justify-content: space-between;
+            height: 120px; /
         }
         .character-card:hover {
             transform: translateY(-5px);
@@ -150,9 +152,12 @@
             transition: all 0.3s ease;
         }
         textarea {
-            width: 100%;
+            width: calc(100% - 1px); /* Subtracting padding */
             margin-bottom: 10px;
+            max-width: 100%;
+            box-sizing: border-box;
         }
+
         button {
             background-color: #000;
             color: white;
@@ -205,6 +210,8 @@
             font-family: 'Playfair Display', serif;
         }
 
+
+        
         .character-card button {
             margin-top: 10px;
             margin-right: 5px;
@@ -212,30 +219,24 @@
             font-size: 12px;
         }
 
+
         @media (max-width: 768px) {
-            body {
+            .character-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .character-card {
                 padding: 10px;
+                height: auto;
             }
-            .container {
-                padding: 15px;
-            }
-            h1 {
-                font-size: 28px;
-            }
+
             .character {
-                font-size: 28px;
+                font-size: 24px;
             }
-            .tab, button {
-                padding: 8px 12px;
-                font-size: 14px;
-            }
-            .input-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            input[type="text"], textarea, select, input[type="file"], button {
-                width: 100%;
-                margin-bottom: 10px;
+
+            .character-card button {
+                padding: 2px 6px;
+                font-size: 10px;
             }
         }
     </style>
@@ -246,7 +247,6 @@
         
         <div class="summary" id="summary"></div>
 
-        <div class="review-count">Characters to review: <span id="reviewCount">0</span></div>
 
         <div class="tabs">
             <div class="tab" onclick="showTab('reviewTab')">Review</div>
@@ -389,188 +389,188 @@
             updateSummary();
         }
 
-function createCharacterCard(char, index) {
-    return `
-        <div class="character-card">
-            <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
-            <div class="character">${char.character}</div>
-            <div class="next-review">${char.nextReview}</div>
-        </div>
-    `;
-}
+        function createCharacterCard(char, index) {
+            return `
+                <div class="character-card">
+                    <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
+                    <div class="character">${char.character}</div>
+                    <div class="next-review">${char.nextReview}</div>
+                </div>
+            `;
+        }
 
-function addCharacters() {
-    const newChars = document.getElementById('newCharacters').value.trim();
-    const degree = parseInt(document.getElementById('newDegree').value);
-    if (newChars) {
-        const today = new Date().toISOString().split('T')[0];
-        const duplicates = [];
-        newChars.split('').forEach(char => {
-            if (characters.some(c => c.character === char)) {
-                duplicates.push(char);
-            } else {
-                characters.push({
-                    character: char,
-                    degree: degree,
-                    nextReview: getNextReviewDate(degree),
-                    lastReviewed: today
+        function addCharacters() {
+            const newChars = document.getElementById('newCharacters').value.trim();
+            const degree = parseInt(document.getElementById('newDegree').value);
+            if (newChars) {
+                const today = new Date().toISOString().split('T')[0];
+                const duplicates = [];
+                newChars.split('').forEach(char => {
+                    if (characters.some(c => c.character === char)) {
+                        duplicates.push(char);
+                    } else {
+                        characters.push({
+                            character: char,
+                            degree: degree,
+                            nextReview: getNextReviewDate(degree),
+                            lastReviewed: today
+                        });
+                    }
                 });
-            }
-        });
-        saveCharacters();
-        displayCharacters();
-        document.getElementById('newCharacters').value = '';
-        if (duplicates.length > 0) {
-            showNotification(`Duplicate characters found: ${duplicates.join(', ')}`);
-        } else {
-            showNotification('Characters added successfully!', 'success');
-        }
-    }
-}
-
-function getNextReviewDate(degree) {
-    const days = [1, 2, 4, 7, 15, 30, 90][degree];
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
-}
-
-function toggleSelection(index) {
-    const i = selectedIndices.indexOf(index);
-    if (i > -1) {
-        selectedIndices.splice(i, 1);
-    } else {
-        selectedIndices.push(index);
-    }
-}
-
-function moveSelectedToDegree() {
-    const degree = parseInt(document.getElementById('moveToDegree').value);
-    updateDegrees(selectedIndices, degree);
-}
-
-function updateDegrees(indices, newDegree) {
-    const today = new Date().toISOString().split('T')[0];
-    characters = characters.map((char, index) => {
-        if (indices.includes(index)) {
-            return {
-                ...char,
-                degree: newDegree,
-                nextReview: getNextReviewDate(newDegree),
-                lastReviewed: today
-            };
-        }
-        return char;
-    });
-    saveCharacters();
-    displayCharacters();
-    selectedIndices = [];
-    showNotification('Characters updated successfully!', 'success');
-}
-
-function deleteSelected() {
-    characters = characters.filter((_, index) => !selectedIndices.includes(index));
-    saveCharacters();
-    displayCharacters();
-    selectedIndices = [];
-    showNotification('Selected characters deleted successfully!', 'success');
-}
-
-function saveCharacters() {
-    localStorage.setItem('characters', JSON.stringify(characters));
-}
-
-function showNotification(message, type = 'error') {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.style.display = 'block';
-    switch(type) {
-        case 'success':
-            notification.style.backgroundColor = '#d4edda';
-            notification.style.color = '#155724';
-            break;
-        case 'warning':
-            notification.style.backgroundColor = '#fff3cd';
-            notification.style.color = '#856404';
-            break;
-        case 'info':
-            notification.style.backgroundColor = '#d1ecf1';
-            notification.style.color = '#0c5460';
-            break;
-        default:
-            notification.style.backgroundColor = '#f8d7da';
-            notification.style.color = '#721c24';
-    }
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 5000);  // Display for 5 seconds
-}
-
-function updateSummary() {
-    const totalCharacters = characters.length;
-    const today = new Date().toISOString().split('T')[0];
-    const dueCharacters = characters.filter(char => char.nextReview <= today).length;
-    const summary = document.getElementById('summary');
-    summary.innerHTML = `
-        <strong>Total Characters:</strong> ${totalCharacters} | 
-        <strong>Due for Review Today:</strong> ${dueCharacters}
-    `;
-}
-
-function exportCharacters() {
-    const ws = XLSX.utils.json_to_sheet(characters.map(char => ({
-        character: char.character,
-        degree: char.degree,
-        nextReview: char.nextReview
-    })));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Characters");
-    XLSX.writeFile(wb, "chinese_characters_srs.xlsx");
-}
-
-function importCharacters() {
-    const file = document.getElementById('importFile').files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
-            const json = XLSX.utils.sheet_to_json(worksheet);
-            
-            const duplicates = [];
-            const newCharacters = json.filter(row => {
-                if (characters.some(char => char.character === row.character)) {
-                    duplicates.push(row.character);
-                    return false;
-                }
-                return true;
-            }).map(row => ({
-                character: row.character,
-                degree: parseInt(row.degree),
-                nextReview: row.nextReview,
-                lastReviewed: new Date().toISOString().split('T')[0]
-            }));
-
-            if (newCharacters.length > 0) {
-                characters = [...characters, ...newCharacters];
                 saveCharacters();
                 displayCharacters();
-                showNotification(`Imported ${newCharacters.length} new characters successfully!`, 'success');
+                document.getElementById('newCharacters').value = '';
+                if (duplicates.length > 0) {
+                    showNotification(`Duplicate characters found: ${duplicates.join(', ')}`);
+                } else {
+                    showNotification('Characters added successfully!', 'success');
+                }
             }
+        }
 
-            if (duplicates.length > 0) {
-                showNotification(`Skipped ${duplicates.length} duplicate characters: ${duplicates.join(', ')}`, 'warning');
-            }
+        function getNextReviewDate(degree) {
+            const days = [1, 2, 4, 7, 15, 30, 90][degree];
+            const date = new Date();
+            date.setDate(date.getDate() + days);
+            return date.toISOString().split('T')[0];
+        }
 
-            if (newCharacters.length === 0 && duplicates.length === 0) {
-                showNotification('No new characters to import.', 'info');
+        function toggleSelection(index) {
+            const i = selectedIndices.indexOf(index);
+            if (i > -1) {
+                selectedIndices.splice(i, 1);
+            } else {
+                selectedIndices.push(index);
             }
-        };
-        reader.readAsArrayBuffer(file);
-    }
-}
+        }
+
+        function moveSelectedToDegree() {
+            const degree = parseInt(document.getElementById('moveToDegree').value);
+            updateDegrees(selectedIndices, degree);
+        }
+
+        function updateDegrees(indices, newDegree) {
+            const today = new Date().toISOString().split('T')[0];
+            characters = characters.map((char, index) => {
+                if (indices.includes(index)) {
+                    return {
+                        ...char,
+                        degree: newDegree,
+                        nextReview: getNextReviewDate(newDegree),
+                        lastReviewed: today
+                    };
+                }
+                return char;
+            });
+            saveCharacters();
+            displayCharacters();
+            selectedIndices = [];
+            showNotification('Characters updated successfully!', 'success');
+        }
+
+        function deleteSelected() {
+            characters = characters.filter((_, index) => !selectedIndices.includes(index));
+            saveCharacters();
+            displayCharacters();
+            selectedIndices = [];
+            showNotification('Selected characters deleted successfully!', 'success');
+        }
+
+        function saveCharacters() {
+            localStorage.setItem('characters', JSON.stringify(characters));
+        }
+
+        function showNotification(message, type = 'error') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            switch(type) {
+                case 'success':
+                    notification.style.backgroundColor = '#d4edda';
+                    notification.style.color = '#155724';
+                    break;
+                case 'warning':
+                    notification.style.backgroundColor = '#fff3cd';
+                    notification.style.color = '#856404';
+                    break;
+                case 'info':
+                    notification.style.backgroundColor = '#d1ecf1';
+                    notification.style.color = '#0c5460';
+                    break;
+                default:
+                    notification.style.backgroundColor = '#f8d7da';
+                    notification.style.color = '#721c24';
+            }
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);  // Display for 5 seconds
+        }
+
+        function updateSummary() {
+            const totalCharacters = characters.length;
+            const today = new Date().toISOString().split('T')[0];
+            const dueCharacters = characters.filter(char => char.nextReview <= today).length;
+            const summary = document.getElementById('summary');
+            summary.innerHTML = `
+                <strong>Total Characters:</strong> ${totalCharacters} | 
+                <strong>Due for Review Today:</strong> ${dueCharacters}
+            `;
+        }
+
+        function exportCharacters() {
+            const ws = XLSX.utils.json_to_sheet(characters.map(char => ({
+                character: char.character,
+                degree: char.degree,
+                nextReview: char.nextReview
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Characters");
+            XLSX.writeFile(wb, "chinese_characters_srs.xlsx");
+        }
+
+        function importCharacters() {
+            const file = document.getElementById('importFile').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    const duplicates = [];
+                    const newCharacters = json.filter(row => {
+                        if (characters.some(char => char.character === row.character)) {
+                            duplicates.push(row.character);
+                            return false;
+                        }
+                        return true;
+                    }).map(row => ({
+                        character: row.character,
+                        degree: parseInt(row.degree),
+                        nextReview: row.nextReview,
+                        lastReviewed: new Date().toISOString().split('T')[0]
+                    }));
+
+                    if (newCharacters.length > 0) {
+                        characters = [...characters, ...newCharacters];
+                        saveCharacters();
+                        displayCharacters();
+                        showNotification(`Imported ${newCharacters.length} new characters successfully!`, 'success');
+                    }
+
+                    if (duplicates.length > 0) {
+                        showNotification(`Skipped ${duplicates.length} duplicate characters: ${duplicates.join(', ')}`, 'warning');
+                    }
+
+                    if (newCharacters.length === 0 && duplicates.length === 0) {
+                        showNotification('No new characters to import.', 'info');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        }
 
         // Initial load
         document.addEventListener('DOMContentLoaded', function() {
