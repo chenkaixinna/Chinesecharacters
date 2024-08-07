@@ -26,7 +26,6 @@
             color: #000;
             margin-bottom: 20px;
         }
-
         h1 {
             font-size: 36px;
             text-align: center;
@@ -34,15 +33,11 @@
             padding-bottom: 15px;
             margin-bottom: 30px;
         }
-
-
-
         .character-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             gap: 10px;
         }
-
         .character-card {
             border: none;
             border-radius: 8px;
@@ -64,8 +59,7 @@
             display: inline-block;
             margin-right: 10px;
         }
-
-        .degree-title{
+        .degree-title {
             font-family: 'Playfair Display', serif;
             font-size: 25px;
             vertical-align: middle;
@@ -73,7 +67,6 @@
             margin-bottom: 15px;
             color: #000;
         }
-
         .degree {
             font-family: 'Playfair Display', serif;
             display: inline-block;
@@ -87,9 +80,14 @@
             font-size: 20px;
             vertical-align: middle;
         }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
         .tab {
             font-family: 'Playfair Display', serif;
-            display: inline-block;
+            flex: 1;
+            text-align: center;
             padding: 10px 15px;
             cursor: pointer;
             background-color: #f8f9fa;
@@ -121,35 +119,56 @@
             align-items: center;
             margin-bottom: 15px;
         }
-        input[type="text"], textarea, select {
-            padding: 10px;
+        input[type="text"], textarea, select, input[type="file"], button {
+            font-family: 'Playfair Display', serif;
+            padding: 10px 15px;
             border: 1px solid #ced4da;
             border-radius: 8px;
             font-size: 16px;
-            box-sizing: border-box;
+            background-color: #fff;
+            color: #000;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%23000' d='M0 0l4 4 4-4z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 8px;
+            padding-right: 30px;
+        }
+        input[type="file"] {
+            padding: 8px;
+        }
+        input[type="file"]::-webkit-file-upload-button,
+        input[type="file"]::file-selector-button {
+            font-family: 'Playfair Display', serif;
+            padding: 8px 12px;
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
         textarea {
             width: 100%;
             margin-bottom: 10px;
         }
-        select {
-            width: auto;
-        }
         button {
-            font-family: 'Playfair Display', serif;
             background-color: #000;
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-size: 14px;
         }
-        button:hover {
+        button:hover, 
+        input[type="file"]::-webkit-file-upload-button:hover, 
+        input[type="file"]::file-selector-button:hover {
             background-color: #343a40;
         }
         .summary {
@@ -171,26 +190,37 @@
             display: none;
             text-align: center;
         }
-        @media (min-width: 768px) {
+        .import-export {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        @media (max-width: 768px) {
             body {
-                padding: 40px;
+                padding: 10px;
             }
             .container {
-                padding: 40px;
+                padding: 15px;
             }
             h1 {
-                font-size: 48px;
+                font-size: 28px;
             }
             .character {
-                font-size: 48px;
+                font-size: 28px;
             }
-            .tab {
-                padding: 12px 24px;
-                font-size: 16px;
+            .tab, button {
+                padding: 8px 12px;
+                font-size: 14px;
             }
-            button {
-                padding: 12px 24px;
-                font-size: 16px;
+            .input-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            input[type="text"], textarea, select, input[type="file"], button {
+                width: 100%;
+                margin-bottom: 10px;
             }
         }
     </style>
@@ -201,7 +231,12 @@
         
         <div class="summary" id="summary"></div>
 
-        <div id="inputTab">
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('inputTab')">Input</div>
+            <div class="tab" onclick="showTab('reviewTab')">Review</div>
+        </div>
+
+        <div id="inputTab" class="tab-content active">
             <h2>Add New Characters</h2>
             <textarea id="newCharacters" rows="3" placeholder="Enter characters"></textarea>
             <div class="input-row">
@@ -234,12 +269,35 @@
             <div id="characterList"></div>
         </div>
 
+        <div id="reviewTab" class="tab-content">
+            <h2>Characters Due for Review</h2>
+            <div id="reviewList"></div>
+        </div>
+
+        <div class="import-export">
+            <h2>Import/Export</h2>
+            <input type="file" id="importFile" accept=".xlsx,.xls,.csv">
+            <button onclick="importCharacters()">Import</button>
+            <button onclick="exportCharacters()">Export</button>
+        </div>
+
         <div id="notification" class="notification"></div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script>
         let characters = JSON.parse(localStorage.getItem('characters')) || [];
         let selectedIndices = [];
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+            if (tabId === 'reviewTab') {
+                displayReviewCharacters();
+            }
+        }
 
         function displayCharacters() {
             const list = document.getElementById('characterList');
@@ -270,6 +328,22 @@
                     <div class="next-review">${char.nextReview}</div>
                 </div>
             `;
+        }
+
+        function displayReviewCharacters() {
+            const reviewList = document.getElementById('reviewList');
+            reviewList.innerHTML = '';
+            const today = new Date().toISOString().split('T')[0];
+            const dueChars = characters.filter(char => char.nextReview <= today);
+            
+            if (dueChars.length > 0) {
+                const grid = document.createElement('div');
+                grid.className = 'character-grid';
+                grid.innerHTML = dueChars.map((char, index) => createCharacterCard(char, characters.indexOf(char))).join('');
+                reviewList.appendChild(grid);
+            } else {
+                reviewList.innerHTML = '<p>No characters due for review today.</p>';
+            }
         }
 
         function addCharacters() {
@@ -357,11 +431,26 @@
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.style.display = 'block';
-            notification.style.backgroundColor = type === 'success' ? '#d4edda' : '#f8d7da';
-            notification.style.color = type === 'success' ? '#155724' : '#721c24';
+            switch(type) {
+                case 'success':
+                    notification.style.backgroundColor = '#d4edda';
+                    notification.style.color = '#155724';
+                    break;
+                case 'warning':
+                    notification.style.backgroundColor = '#fff3cd';
+                    notification.style.color = '#856404';
+                    break;
+                case 'info':
+                    notification.style.backgroundColor = '#d1ecf1';
+                    notification.style.color = '#0c5460';
+                    break;
+                default:
+                    notification.style.backgroundColor = '#f8d7da';
+                    notification.style.color = '#721c24';
+            }
             setTimeout(() => {
                 notification.style.display = 'none';
-            }, 3000);
+            }, 5000);  // Display for 5 seconds
         }
 
         function updateSummary() {
@@ -373,6 +462,61 @@
                 <strong>Total Characters:</strong> ${totalCharacters} | 
                 <strong>Due for Review Today:</strong> ${dueCharacters}
             `;
+        }
+
+        function exportCharacters() {
+            const ws = XLSX.utils.json_to_sheet(characters.map(char => ({
+                character: char.character,
+                degree: char.degree,
+                nextReview: char.nextReview
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Characters");
+            XLSX.writeFile(wb, "chinese_characters_srs.xlsx");
+        }
+
+        function importCharacters() {
+            const file = document.getElementById('importFile').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    const duplicates = [];
+                    const newCharacters = json.filter(row => {
+                        if (characters.some(char => char.character === row.character)) {
+                            duplicates.push(row.character);
+                            return false;
+                        }
+                        return true;
+                    }).map(row => ({
+                        character: row.character,
+                        degree: parseInt(row.degree),
+                        nextReview: row.nextReview,
+                        lastReviewed: new Date().toISOString().split('T')[0]
+                    }));
+
+                    if (newCharacters.length > 0) {
+                        characters = [...characters, ...newCharacters];
+                        saveCharacters();
+                        displayCharacters();
+                        showNotification(`Imported ${newCharacters.length} new characters successfully!`, 'success');
+                    }
+
+                    if (duplicates.length > 0) {
+                        showNotification(`Skipped ${duplicates.length} duplicate characters: ${duplicates.join(', ')}`, 'warning');
+                    }
+
+                    if (newCharacters.length === 0 && duplicates.length === 0) {
+                        showNotification('No new characters to import.', 'info');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
         }
 
         displayCharacters();
