@@ -48,6 +48,7 @@
             background-color: #f8f9fa;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
+            position: relative;
         }
         .character-card:hover {
             transform: translateY(-5px);
@@ -59,6 +60,14 @@
             display: inline-block;
             margin-right: 10px;
         }
+        .degree {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-family: 'Playfair Display', serif;
+            font-size: 14px;
+            color: #000;
+        }
         .degree-title {
             font-family: 'Playfair Display', serif;
             font-size: 25px;
@@ -66,19 +75,6 @@
             margin-top: 15px;            
             margin-bottom: 15px;
             color: #000;
-        }
-        .degree {
-            font-family: 'Playfair Display', serif;
-            display: inline-block;
-            background-color: #000;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            text-align: center;
-            line-height: 24px;
-            font-size: 20px;
-            vertical-align: middle;
         }
         .tabs {
             display: flex;
@@ -197,6 +193,25 @@
             gap: 10px;
             align-items: center;
         }
+
+        .review-count {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #000;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .character-card button {
+            margin-top: 10px;
+            margin-right: 5px;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 10px;
@@ -231,12 +246,19 @@
         
         <div class="summary" id="summary"></div>
 
+        <div class="review-count">Characters to review: <span id="reviewCount">0</span></div>
+
         <div class="tabs">
-            <div class="tab active" onclick="showTab('inputTab')">Input</div>
             <div class="tab" onclick="showTab('reviewTab')">Review</div>
+            <div class="tab" onclick="showTab('inputTab')">Input</div>
         </div>
 
-        <div id="inputTab" class="tab-content active">
+        <div id="reviewTab" class="tab-content">
+            <h2>Characters Due for Review</h2>
+            <div id="reviewList"></div>
+        </div>
+
+        <div id="inputTab" class="tab-content">
             <h2>Add New Characters</h2>
             <textarea id="newCharacters" rows="3" placeholder="Enter characters"></textarea>
             <div class="input-row">
@@ -269,11 +291,6 @@
             <div id="characterList"></div>
         </div>
 
-        <div id="reviewTab" class="tab-content">
-            <h2>Characters Due for Review</h2>
-            <div id="reviewList"></div>
-        </div>
-
         <div class="import-export">
             <h2>Import/Export</h2>
             <input type="file" id="importFile" accept=".xlsx,.xls,.csv">
@@ -289,6 +306,11 @@
         let characters = JSON.parse(localStorage.getItem('characters')) || [];
         let selectedIndices = [];
 
+        function getCharactersForReview() {
+            const today = new Date().toISOString().split('T')[0];
+            return characters.filter(char => char.nextReview <= today);
+        }
+
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -296,7 +318,54 @@
             document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
             if (tabId === 'reviewTab') {
                 displayReviewCharacters();
+            } else if (tabId === 'inputTab') {
+                displayCharacters();
             }
+        }
+
+        function displayReviewCharacters() {
+            const reviewList = document.getElementById('reviewList');
+            reviewList.innerHTML = '';
+            const dueChars = getCharactersForReview();
+            
+            if (dueChars.length > 0) {
+                const grid = document.createElement('div');
+                grid.className = 'character-grid';
+                grid.innerHTML = dueChars.map((char, index) => createReviewCard(char, index)).join('');
+                reviewList.appendChild(grid);
+            } else {
+                reviewList.innerHTML = '<p>No characters due for review today.</p>';
+            }
+
+            document.getElementById('reviewCount').textContent = dueChars.length;
+        }
+
+        function createReviewCard(char, index) {
+            return `
+                <div class="character-card">
+                    <div class="degree">${char.degree}</div>
+                    <div class="character">${char.character}</div>
+                    <button onclick="keepDegree(${index})">K</button>
+                    <button onclick="moveToNextDegree(${index})">M</button>
+                </div>
+            `;
+        }
+
+        function keepDegree(index) {
+            const char = getCharactersForReview()[index];
+            char.lastReviewed = new Date().toISOString().split('T')[0];
+            char.nextReview = getNextReviewDate(char.degree);
+            saveCharacters();
+            displayReviewCharacters();
+        }
+
+        function moveToNextDegree(index) {
+            const char = getCharactersForReview()[index];
+            char.degree = Math.min(char.degree + 1, 6);  // Max degree is 6
+            char.lastReviewed = new Date().toISOString().split('T')[0];
+            char.nextReview = getNextReviewDate(char.degree);
+            saveCharacters();
+            displayReviewCharacters();
         }
 
         function displayCharacters() {
@@ -320,206 +389,194 @@
             updateSummary();
         }
 
-        function createCharacterCard(char, index) {
-            return `
-                <div class="character-card">
-                    <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
-                    <div class="character">${char.character}</div>
-                    <div class="next-review">${char.nextReview}</div>
-                </div>
-            `;
-        }
+function createCharacterCard(char, index) {
+    return `
+        <div class="character-card">
+            <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
+            <div class="character">${char.character}</div>
+            <div class="next-review">${char.nextReview}</div>
+        </div>
+    `;
+}
 
-        function displayReviewCharacters() {
-            const reviewList = document.getElementById('reviewList');
-            reviewList.innerHTML = '';
-            const today = new Date().toISOString().split('T')[0];
-            const dueChars = characters.filter(char => char.nextReview <= today);
-            
-            if (dueChars.length > 0) {
-                const grid = document.createElement('div');
-                grid.className = 'character-grid';
-                grid.innerHTML = dueChars.map((char, index) => createCharacterCard(char, characters.indexOf(char))).join('');
-                reviewList.appendChild(grid);
+function addCharacters() {
+    const newChars = document.getElementById('newCharacters').value.trim();
+    const degree = parseInt(document.getElementById('newDegree').value);
+    if (newChars) {
+        const today = new Date().toISOString().split('T')[0];
+        const duplicates = [];
+        newChars.split('').forEach(char => {
+            if (characters.some(c => c.character === char)) {
+                duplicates.push(char);
             } else {
-                reviewList.innerHTML = '<p>No characters due for review today.</p>';
-            }
-        }
-
-        function addCharacters() {
-            const newChars = document.getElementById('newCharacters').value.trim();
-            const degree = parseInt(document.getElementById('newDegree').value);
-            if (newChars) {
-                const today = new Date().toISOString().split('T')[0];
-                const duplicates = [];
-                newChars.split('').forEach(char => {
-                    if (characters.some(c => c.character === char)) {
-                        duplicates.push(char);
-                    } else {
-                        characters.push({
-                            character: char,
-                            degree: degree,
-                            nextReview: getNextReviewDate(degree),
-                            lastReviewed: today
-                        });
-                    }
+                characters.push({
+                    character: char,
+                    degree: degree,
+                    nextReview: getNextReviewDate(degree),
+                    lastReviewed: today
                 });
+            }
+        });
+        saveCharacters();
+        displayCharacters();
+        document.getElementById('newCharacters').value = '';
+        if (duplicates.length > 0) {
+            showNotification(`Duplicate characters found: ${duplicates.join(', ')}`);
+        } else {
+            showNotification('Characters added successfully!', 'success');
+        }
+    }
+}
+
+function getNextReviewDate(degree) {
+    const days = [1, 2, 4, 7, 15, 30, 90][degree];
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+}
+
+function toggleSelection(index) {
+    const i = selectedIndices.indexOf(index);
+    if (i > -1) {
+        selectedIndices.splice(i, 1);
+    } else {
+        selectedIndices.push(index);
+    }
+}
+
+function moveSelectedToDegree() {
+    const degree = parseInt(document.getElementById('moveToDegree').value);
+    updateDegrees(selectedIndices, degree);
+}
+
+function updateDegrees(indices, newDegree) {
+    const today = new Date().toISOString().split('T')[0];
+    characters = characters.map((char, index) => {
+        if (indices.includes(index)) {
+            return {
+                ...char,
+                degree: newDegree,
+                nextReview: getNextReviewDate(newDegree),
+                lastReviewed: today
+            };
+        }
+        return char;
+    });
+    saveCharacters();
+    displayCharacters();
+    selectedIndices = [];
+    showNotification('Characters updated successfully!', 'success');
+}
+
+function deleteSelected() {
+    characters = characters.filter((_, index) => !selectedIndices.includes(index));
+    saveCharacters();
+    displayCharacters();
+    selectedIndices = [];
+    showNotification('Selected characters deleted successfully!', 'success');
+}
+
+function saveCharacters() {
+    localStorage.setItem('characters', JSON.stringify(characters));
+}
+
+function showNotification(message, type = 'error') {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.style.display = 'block';
+    switch(type) {
+        case 'success':
+            notification.style.backgroundColor = '#d4edda';
+            notification.style.color = '#155724';
+            break;
+        case 'warning':
+            notification.style.backgroundColor = '#fff3cd';
+            notification.style.color = '#856404';
+            break;
+        case 'info':
+            notification.style.backgroundColor = '#d1ecf1';
+            notification.style.color = '#0c5460';
+            break;
+        default:
+            notification.style.backgroundColor = '#f8d7da';
+            notification.style.color = '#721c24';
+    }
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 5000);  // Display for 5 seconds
+}
+
+function updateSummary() {
+    const totalCharacters = characters.length;
+    const today = new Date().toISOString().split('T')[0];
+    const dueCharacters = characters.filter(char => char.nextReview <= today).length;
+    const summary = document.getElementById('summary');
+    summary.innerHTML = `
+        <strong>Total Characters:</strong> ${totalCharacters} | 
+        <strong>Due for Review Today:</strong> ${dueCharacters}
+    `;
+}
+
+function exportCharacters() {
+    const ws = XLSX.utils.json_to_sheet(characters.map(char => ({
+        character: char.character,
+        degree: char.degree,
+        nextReview: char.nextReview
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Characters");
+    XLSX.writeFile(wb, "chinese_characters_srs.xlsx");
+}
+
+function importCharacters() {
+    const file = document.getElementById('importFile').files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+            
+            const duplicates = [];
+            const newCharacters = json.filter(row => {
+                if (characters.some(char => char.character === row.character)) {
+                    duplicates.push(row.character);
+                    return false;
+                }
+                return true;
+            }).map(row => ({
+                character: row.character,
+                degree: parseInt(row.degree),
+                nextReview: row.nextReview,
+                lastReviewed: new Date().toISOString().split('T')[0]
+            }));
+
+            if (newCharacters.length > 0) {
+                characters = [...characters, ...newCharacters];
                 saveCharacters();
                 displayCharacters();
-                document.getElementById('newCharacters').value = '';
-                if (duplicates.length > 0) {
-                    showNotification(`Duplicate characters found: ${duplicates.join(', ')}`);
-                } else {
-                    showNotification('Characters added successfully!', 'success');
-                }
+                showNotification(`Imported ${newCharacters.length} new characters successfully!`, 'success');
             }
-        }
 
-        function getNextReviewDate(degree) {
-            const days = [1, 2, 4, 7, 15, 30, 90][degree];
-            const date = new Date();
-            date.setDate(date.getDate() + days);
-            return date.toISOString().split('T')[0];
-        }
-
-        function toggleSelection(index) {
-            const i = selectedIndices.indexOf(index);
-            if (i > -1) {
-                selectedIndices.splice(i, 1);
-            } else {
-                selectedIndices.push(index);
+            if (duplicates.length > 0) {
+                showNotification(`Skipped ${duplicates.length} duplicate characters: ${duplicates.join(', ')}`, 'warning');
             }
-        }
 
-        function moveSelectedToDegree() {
-            const degree = parseInt(document.getElementById('moveToDegree').value);
-            updateDegrees(selectedIndices, degree);
-        }
-
-        function updateDegrees(indices, newDegree) {
-            const today = new Date().toISOString().split('T')[0];
-            characters = characters.map((char, index) => {
-                if (indices.includes(index)) {
-                    return {
-                        ...char,
-                        degree: newDegree,
-                        nextReview: getNextReviewDate(newDegree),
-                        lastReviewed: today
-                    };
-                }
-                return char;
-            });
-            saveCharacters();
-            displayCharacters();
-            selectedIndices = [];
-            showNotification('Characters updated successfully!', 'success');
-        }
-
-        function deleteSelected() {
-            characters = characters.filter((_, index) => !selectedIndices.includes(index));
-            saveCharacters();
-            displayCharacters();
-            selectedIndices = [];
-            showNotification('Selected characters deleted successfully!', 'success');
-        }
-
-        function saveCharacters() {
-            localStorage.setItem('characters', JSON.stringify(characters));
-        }
-
-        function showNotification(message, type = 'error') {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.display = 'block';
-            switch(type) {
-                case 'success':
-                    notification.style.backgroundColor = '#d4edda';
-                    notification.style.color = '#155724';
-                    break;
-                case 'warning':
-                    notification.style.backgroundColor = '#fff3cd';
-                    notification.style.color = '#856404';
-                    break;
-                case 'info':
-                    notification.style.backgroundColor = '#d1ecf1';
-                    notification.style.color = '#0c5460';
-                    break;
-                default:
-                    notification.style.backgroundColor = '#f8d7da';
-                    notification.style.color = '#721c24';
+            if (newCharacters.length === 0 && duplicates.length === 0) {
+                showNotification('No new characters to import.', 'info');
             }
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 5000);  // Display for 5 seconds
-        }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+}
 
-        function updateSummary() {
-            const totalCharacters = characters.length;
-            const today = new Date().toISOString().split('T')[0];
-            const dueCharacters = characters.filter(char => char.nextReview <= today).length;
-            const summary = document.getElementById('summary');
-            summary.innerHTML = `
-                <strong>Total Characters:</strong> ${totalCharacters} | 
-                <strong>Due for Review Today:</strong> ${dueCharacters}
-            `;
-        }
+        // Initial load
+        document.addEventListener('DOMContentLoaded', function() {
+            showTab('reviewTab');
+        });
 
-        function exportCharacters() {
-            const ws = XLSX.utils.json_to_sheet(characters.map(char => ({
-                character: char.character,
-                degree: char.degree,
-                nextReview: char.nextReview
-            })));
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Characters");
-            XLSX.writeFile(wb, "chinese_characters_srs.xlsx");
-        }
-
-        function importCharacters() {
-            const file = document.getElementById('importFile').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet);
-                    
-                    const duplicates = [];
-                    const newCharacters = json.filter(row => {
-                        if (characters.some(char => char.character === row.character)) {
-                            duplicates.push(row.character);
-                            return false;
-                        }
-                        return true;
-                    }).map(row => ({
-                        character: row.character,
-                        degree: parseInt(row.degree),
-                        nextReview: row.nextReview,
-                        lastReviewed: new Date().toISOString().split('T')[0]
-                    }));
-
-                    if (newCharacters.length > 0) {
-                        characters = [...characters, ...newCharacters];
-                        saveCharacters();
-                        displayCharacters();
-                        showNotification(`Imported ${newCharacters.length} new characters successfully!`, 'success');
-                    }
-
-                    if (duplicates.length > 0) {
-                        showNotification(`Skipped ${duplicates.length} duplicate characters: ${duplicates.join(', ')}`, 'warning');
-                    }
-
-                    if (newCharacters.length === 0 && duplicates.length === 0) {
-                        showNotification('No new characters to import.', 'info');
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            }
-        }
-
-        displayCharacters();
     </script>
 </body>
 </html>
