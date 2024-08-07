@@ -50,7 +50,7 @@
             transition: all 0.3s ease;
             position: relative;
             justify-content: space-between;
-            height: 120px; /
+            height: 120px;
         }
         .character-card:hover {
             transform: translateY(-5px);
@@ -138,26 +138,28 @@
             padding-right: 30px;
         }
         input[type="file"] {
-            padding: 8px;
+            display: none;
         }
-        input[type="file"]::-webkit-file-upload-button,
-        input[type="file"]::file-selector-button {
+        input[type="file"] + label {
             font-family: 'Playfair Display', serif;
-            padding: 8px 12px;
+            padding: 10px 15px;
             background-color: #000;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: inline-block;
+        }
+        input[type="file"] + label:hover {
+            background-color: #343a40;
         }
         textarea {
-            width: calc(100% - 1px); /* Subtracting padding */
+            width: calc(100% - 1px);
             margin-bottom: 10px;
             max-width: 100%;
             box-sizing: border-box;
         }
-
         button {
             background-color: #000;
             color: white;
@@ -167,9 +169,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        button:hover, 
-        input[type="file"]::-webkit-file-upload-button:hover, 
-        input[type="file"]::file-selector-button:hover {
+        button:hover {
             background-color: #343a40;
         }
         .summary {
@@ -198,7 +198,6 @@
             gap: 10px;
             align-items: center;
         }
-
         .review-count {
             position: absolute;
             top: 10px;
@@ -209,31 +208,37 @@
             border-radius: 15px;
             font-family: 'Playfair Display', serif;
         }
-
-
-        
         .character-card button {
             margin-top: 10px;
             margin-right: 5px;
             padding: 5px 10px;
             font-size: 12px;
         }
-
-
+        .character-card .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        .next-review {
+            font-size: 12px;
+            color: #666;
+        }
+        .checkbox {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+        }
         @media (max-width: 768px) {
             .character-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
-
             .character-card {
                 padding: 10px;
                 height: auto;
             }
-
             .character {
                 font-size: 24px;
             }
-
             .character-card button {
                 padding: 2px 6px;
                 font-size: 10px;
@@ -246,7 +251,6 @@
         <h1>Chinese Character SRS</h1>
         
         <div class="summary" id="summary"></div>
-
 
         <div class="tabs">
             <div class="tab" onclick="showTab('reviewTab')">Review</div>
@@ -275,6 +279,7 @@
             </div>
 
             <h2>Edit Characters</h2>
+            <input type="text" id="searchCharacters" placeholder="Search characters" onkeyup="searchCharacters()">
             <div class="input-row">
                 <select id="moveToDegree">
                     <option value="0">Degree 0</option>
@@ -294,8 +299,9 @@
         <div class="import-export">
             <h2>Import/Export</h2>
             <input type="file" id="importFile" accept=".xlsx,.xls,.csv">
-            <button onclick="importCharacters()">Import</button>
+            <button onclick="document.getElementById('importFile').click(); importCharacters()">Import</button>
             <button onclick="exportCharacters()">Export</button>
+            <button onclick="clearCharacters()">Clear</button>
         </div>
 
         <div id="notification" class="notification"></div>
@@ -343,10 +349,14 @@
         function createReviewCard(char, index) {
             return `
                 <div class="character-card">
+                    <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
                     <div class="degree">${char.degree}</div>
                     <div class="character">${char.character}</div>
-                    <button onclick="keepDegree(${index})">K</button>
-                    <button onclick="moveToNextDegree(${index})">M</button>
+                    <div class="buttons">
+                        <button onclick="keepDegree(${index})">K</button>
+                        <button onclick="moveToNextDegree(${index})">M</button>
+                    </div>
+                    <div class="next-review">${char.nextReview}</div>
                 </div>
             `;
         }
@@ -395,8 +405,28 @@
                     <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
                     <div class="character">${char.character}</div>
                     <div class="next-review">${char.nextReview}</div>
+                    <div class="buttons">
+                        <button onclick="moveUp(${index})">U</button>
+                        <button onclick="moveDown(${index})">D</button>
+                    </div>
                 </div>
             `;
+        }
+
+        function moveUp(index) {
+            const char = characters[index];
+            char.degree = Math.min(char.degree + 1, 6); // Move up a degree, max is 6
+            char.nextReview = getNextReviewDate(char.degree);
+            saveCharacters();
+            displayCharacters();
+        }
+
+        function moveDown(index) {
+            const char = characters[index];
+            char.degree = Math.max(char.degree - 1, 0); // Move down a degree, min is 0
+            char.nextReview = getNextReviewDate(char.degree);
+            saveCharacters();
+            displayCharacters();
         }
 
         function addCharacters() {
@@ -529,7 +559,8 @@
         }
 
         function importCharacters() {
-            const file = document.getElementById('importFile').files[0];
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -570,6 +601,28 @@
                 };
                 reader.readAsArrayBuffer(file);
             }
+        }
+
+        function clearCharacters() {
+            if (confirm("Are you sure you want to clear all characters? This action cannot be undone.")) {
+                characters = [];
+                saveCharacters();
+                displayCharacters();
+                showNotification('All characters have been cleared!', 'success');
+            }
+        }
+
+        function searchCharacters() {
+            const searchTerm = document.getElementById('searchCharacters').value.toLowerCase();
+            const characterCards = document.querySelectorAll('.character-card');
+            characterCards.forEach(card => {
+                const character = card.querySelector('.character').textContent.toLowerCase();
+                if (character.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         }
 
         // Initial load
