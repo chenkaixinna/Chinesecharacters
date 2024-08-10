@@ -363,17 +363,19 @@
 
         function keepDegree(index) {
             const char = getCharactersForReview()[index];
-            char.lastReviewed = new Date().toISOString().split('T')[0];
-            char.nextReview = getNextReviewDate(char.degree);
+            const today = new Date().toISOString().split('T')[0];
+            char.lastReviewed = today;
+            char.nextReview = getNextReviewDate(char.degree, today);
             saveCharacters();
             displayReviewCharacters();
         }
 
         function moveToNextDegree(index) {
             const char = getCharactersForReview()[index];
+            const today = new Date().toISOString().split('T')[0];
             char.degree = Math.min(char.degree + 1, 6);  // Max degree is 6
-            char.lastReviewed = new Date().toISOString().split('T')[0];
-            char.nextReview = getNextReviewDate(char.degree);
+            char.lastReviewed = today;
+            char.nextReview = getNextReviewDate(char.degree, today);
             saveCharacters();
             displayReviewCharacters();
         }
@@ -413,54 +415,49 @@
             `;
         }
 
+
         function moveUp(index) {
             const char = characters[index];
+            const today = new Date().toISOString().split('T')[0];
             char.degree = Math.min(char.degree + 1, 6); // Move up a degree, max is 6
-            char.nextReview = getNextReviewDate(char.degree);
+            char.lastReviewed = today;
+            char.nextReview = getNextReviewDate(char.degree, today);
             saveCharacters();
             displayCharacters();
         }
 
         function moveDown(index) {
             const char = characters[index];
+            const today = new Date().toISOString().split('T')[0];
             char.degree = Math.max(char.degree - 1, 0); // Move down a degree, min is 0
-            char.nextReview = getNextReviewDate(char.degree);
+            char.lastReviewed = today;
+            char.nextReview = getNextReviewDate(char.degree, today);
             saveCharacters();
             displayCharacters();
         }
 
-        function addCharacters() {
-            const newChars = document.getElementById('newCharacters').value.trim();
-            const degree = parseInt(document.getElementById('newDegree').value);
-            if (newChars) {
-                const today = new Date().toISOString().split('T')[0];
-                const duplicates = [];
-                newChars.split('').forEach(char => {
-                    if (characters.some(c => c.character === char)) {
-                        duplicates.push(char);
-                    } else {
-                        characters.push({
-                            character: char,
-                            degree: degree,
-                            nextReview: getNextReviewDate(degree),
-                            lastReviewed: today
-                        });
-                    }
-                });
-                saveCharacters();
-                displayCharacters();
-                document.getElementById('newCharacters').value = '';
-                if (duplicates.length > 0) {
-                    showNotification(`Duplicate characters found: ${duplicates.join(', ')}`);
-                } else {
-                    showNotification('Characters added successfully!', 'success');
+        function updateDegrees(indices, newDegree) {
+            const today = new Date().toISOString().split('T')[0];
+            characters = characters.map((char, index) => {
+                if (indices.includes(index)) {
+                    return {
+                        ...char,
+                        degree: newDegree,
+                        nextReview: getNextReviewDate(newDegree, today),
+                        lastReviewed: today
+                    };
                 }
-            }
+                return char;
+            });
+            saveCharacters();
+            displayCharacters();
+            selectedIndices = [];
+            showNotification('Characters updated successfully!', 'success');
         }
 
-        function getNextReviewDate(degree) {
+        function getNextReviewDate(degree, lastReviewDate) {
             const days = [1, 2, 4, 7, 15, 30, 90][degree];
-            const date = new Date();
+            const date = new Date(lastReviewDate);
             date.setDate(date.getDate() + days);
             return date.toISOString().split('T')[0];
         }
