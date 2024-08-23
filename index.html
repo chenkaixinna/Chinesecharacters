@@ -3,62 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chinese Character SRS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>Chinese Character Fun</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Comic Neue', cursive;
             max-width: 100%;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f8f9fa;
-            color: #212529;
+            background-color: #ffebee;
+            color: #333;
             line-height: 1.6;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
         .container {
-            background-color: white;
-            border-radius: 12px;
+            background-color: #fff;
+            border-radius: 20px;
             padding: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
         }
         h1, h2, h3 {
-            font-family: 'Playfair Display', serif;
-            color: #000;
+            color: #ff6b6b;
             margin-bottom: 20px;
+            text-align: center;
         }
         h1 {
             font-size: 36px;
             text-align: center;
-            border-bottom: 2px solid #000;
+            border-bottom: 4px dotted #ff6b6b;
             padding-bottom: 15px;
             margin-bottom: 30px;
         }
         .character-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
         }
         .character-card {
-            border: none;
-            border-radius: 8px;
+            border: 3px solid #4ecdc4;
+            border-radius: 15px;
             padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f8f9fa;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             position: relative;
             justify-content: space-between;
-            height: 120px;
+            height: 150px;
+            cursor: pointer;
         }
+
+        .character-card.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vh;
+            max-width: 500px;
+            max-height: 500px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .character-card.expanded .character {
+            font-size: 150px;
+            margin-bottom: 20px;
+        }
+
+        .character-card.expanded .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .character-card.expanded .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
         .character-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px) rotate(3deg);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
         .character {
-            font-size: 36px;
-            color: #000;
+            font-size: 48px;
+            color: #333;
             display: inline-block;
             margin-right: 10px;
         }
@@ -66,45 +127,52 @@
             position: absolute;
             top: 5px;
             right: 5px;
-            font-family: 'Playfair Display', serif;
-            font-size: 14px;
-            color: #000;
+            font-size: 18px;
+            color: #ff6b6b;
+            background-color: #ffe66d;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .degree-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 25px;
-            vertical-align: middle;
+            font-size: 28px;
             margin-top: 15px;            
             margin-bottom: 15px;
-            color: #000;
+            color: #ff6b6b;
+            text-align: center;
         }
         .tabs {
             display: flex;
             margin-bottom: 20px;
+            justify-content: center;
         }
         .tab {
-            font-family: 'Playfair Display', serif;
             flex: 1;
             text-align: center;
-            padding: 10px 15px;
+            padding: 15px;
             cursor: pointer;
-            background-color: #f8f9fa;
-            border-radius: 8px 8px 0 0;
+            background-color: #ffe66d;
+            border-radius: 15px 15px 0 0;
             transition: all 0.3s ease;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-size: 14px;
+            font-size: 18px;
+            margin: 0 5px;
+            color: #333;
         }
         .tab.active {
-            background-color: #000;
+            background-color: #ff6b6b;
             color: white;
         }
         .tab-content {
             display: none;
             background-color: white;
             padding: 20px;
-            border-radius: 0 8px 8px 8px;
+            border-radius: 0 0 15px 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
         .tab-content.active {
@@ -113,140 +181,147 @@
         .input-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
         }
         input[type="text"], textarea, select, input[type="file"], button {
-            font-family: 'Playfair Display', serif;
-            padding: 10px 15px;
-            border: 1px solid #ced4da;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 12px 20px;
+            border: 3px solid #4ecdc4;
+            border-radius: 15px;
+            font-size: 18px;
             background-color: #fff;
-            color: #000;
+            color: #333;
             transition: all 0.3s ease;
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
         }
         select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%23000' d='M0 0l4 4 4-4z'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath fill='%23333' d='M0 0l4 4 4-4z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 8px;
-            padding-right: 30px;
+            background-position: right 15px center;
+            background-size: 12px;
+            padding-right: 40px;
         }
         input[type="file"] {
             display: none;
         }
         input[type="file"] + label {
-            font-family: 'Playfair Display', serif;
-            padding: 10px 15px;
-            background-color: #000;
+            padding: 12px 20px;
+            background-color: #4ecdc4;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 15px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: inline-block;
+            font-size: 18px;
         }
         input[type="file"] + label:hover {
-            background-color: #343a40;
+            background-color: #45b7aa;
         }
         textarea {
-            width: calc(100% - 1px);
-            margin-bottom: 10px;
+            width: calc(100% - 46px);
+            margin-bottom: 15px;
             max-width: 100%;
             box-sizing: border-box;
         }
         button {
-            background-color: #000;
+            background-color: #ff6b6b;
             color: white;
             border: none;
             cursor: pointer;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-size: 18px;
+            padding: 12px 25px;
         }
         button:hover {
-            background-color: #343a40;
+            background-color: #ff5252;
+            transform: scale(1.05);
         }
         .summary {
-            font-family: 'Playfair Display', serif;
-            background-color: #e9ecef;
+            background-color: #ffe66d;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 15px;
             margin-bottom: 20px;
-            font-size: 16px;
+            font-size: 18px;
             text-align: center;
+            color: #333;
         }
         .notification {
-            font-family: 'Playfair Display', serif;
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: #ff9ff3;
+            color: #333;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 15px;
             margin-top: 20px;
             display: none;
             text-align: center;
+            font-size: 18px;
         }
         .import-export {
-            margin-top: 20px;
+            margin-top: 30px;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
+            justify-content: center;
         }
         .review-count {
             position: absolute;
             top: 10px;
             right: 10px;
-            background-color: #000;
+            background-color: #ff6b6b;
             color: #fff;
             padding: 5px 10px;
             border-radius: 15px;
-            font-family: 'Playfair Display', serif;
+            font-size: 16px;
         }
         .character-card button {
             margin-top: 10px;
             margin-right: 5px;
-            padding: 5px 10px;
-            font-size: 12px;
+            padding: 8px 15px;
+            font-size: 16px;
         }
         .character-card .buttons {
             display: flex;
             justify-content: center;
-            gap: 5px;
+            gap: 10px;
         }
         .next-review {
-            font-size: 12px;
+            font-size: 14px;
             color: #666;
         }
         .checkbox {
             position: absolute;
-            top: 5px;
-            left: 5px;
+            top: 10px;
+            left: 10px;
+            width: 20px;
+            height: 20px;
         }
         @media (max-width: 768px) {
             .character-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(2, 1fr);
             }
             .character-card {
-                padding: 10px;
+                padding: 15px;
                 height: auto;
             }
             .character {
-                font-size: 24px;
+                font-size: 36px;
             }
             .character-card button {
-                padding: 2px 6px;
-                font-size: 10px;
+                padding: 6px 12px;
+                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
+    <div class="overlay" id="overlay"></div>
     <div class="container">
         <h1>Chinese Character SRS</h1>
         
@@ -448,17 +523,42 @@
 
         function createCharacterCard(char, index) {
             return `
-                <div class="character-card">
-                    <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
+                <div class="character-card" onclick="expandCard(this, event)">
+                    <input type="checkbox" class="checkbox" onchange="toggleSelection(${index}); event.stopPropagation();">
+                    <div class="degree">${char.degree}</div>
                     <div class="character">${char.character}</div>
                     <div class="next-review">${char.nextReview}</div>
                     <div class="buttons">
-                        <button onclick="moveUp(${index})">U</button>
-                        <button onclick="moveDown(${index})">D</button>
+                        <button onclick="moveUp(${index}); event.stopPropagation();">U</button>
+                        <button onclick="moveDown(${index}); event.stopPropagation();">D</button>
                     </div>
+                    <button class="close-btn" style="display:none;" onclick="closeExpandedCard(this.parentElement, event)">×</button>
                 </div>
             `;
         }
+
+        function expandCard(card, event) {
+            event.stopPropagation();
+            card.classList.add('expanded');
+            card.querySelector('.close-btn').style.display = 'flex';
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function closeExpandedCard(card, event) {
+            event.stopPropagation();
+            card.classList.remove('expanded');
+            card.querySelector('.close-btn').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'overlay') {
+                const expandedCard = document.querySelector('.character-card.expanded');
+                if (expandedCard) {
+                    closeExpandedCard(expandedCard, event);
+                }
+            }
+        });
 
         function handleNewCharactersKeyPress(event) {
             if (event.key === 'Enter') {
