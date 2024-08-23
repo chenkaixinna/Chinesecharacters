@@ -41,7 +41,6 @@
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             gap: 15px;
         }
-
         .character-card {
             border: 3px solid #4ecdc4;
             border-radius: 15px;
@@ -55,80 +54,7 @@
             position: relative;
             justify-content: space-between;
             height: 150px;
-            cursor: pointer;
         }
-
-        .character-card.expanded {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 400px;
-            height: auto;
-            max-height: 90vh;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            overflow-y: auto;
-            padding: 20px;
-            box-sizing: border-box;
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .character-card.expanded .character {
-            font-size: 80px;
-            margin-bottom: 20px;
-        }
-
-        .character-card.expanded .buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .character-card .close-btn {
-            display: none;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #ff6b6b;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            font-size: 20px;
-            cursor: pointer;
-            justify-content: center;
-            align-items: center;
-            z-index: 1001;
-        }
-
-        .character-card.expanded .close-btn {
-            display: flex;
-        }
-
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-
-        body.card-expanded {
-            overflow: hidden;
-        }
-        
         .character-card:hover {
             transform: translateY(-5px) rotate(3deg);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
@@ -337,7 +263,6 @@
     </style>
 </head>
 <body>
-    <div class="overlay" id="overlay"></div>
     <div class="container">
         <h1>Chinese Character SRS</h1>
         
@@ -503,7 +428,6 @@
             char.nextReview = getNextReviewDate(char.degree, today);
             saveCharacters();
             displayReviewCharacters();
-            closeAllExpandedCards();
         }
 
         function moveToNextDegree(index) {
@@ -514,13 +438,6 @@
             char.nextReview = getNextReviewDate(char.degree, today);
             saveCharacters();
             displayReviewCharacters();
-            closeAllExpandedCards();
-        }
-
-
-        function closeAllExpandedCards() {
-            const expandedCards = document.querySelectorAll('.character-card.expanded');
-            expandedCards.forEach(card => closeExpandedCard(card, new Event('click')));
         }
 
         function displayCharacters() {
@@ -545,97 +462,18 @@
             updateSummary();
         }
 
-        function createCharacterCard(char, index, isReviewCard = false) {
-            const cardContent = `
-                <input type="checkbox" class="checkbox" onchange="toggleSelection(${index}); event.stopPropagation();">
-                <div class="degree">${char.degree}</div>
-                <div class="character">${char.character}</div>
-                <div class="next-review">${char.nextReview}</div>
-                <div class="buttons">
-                    ${isReviewCard ? `
-                        <button onclick="keepDegree(${index}); event.stopPropagation();">K</button>
-                        <button onclick="moveToNextDegree(${index}); event.stopPropagation();">M</button>
-                    ` : `
-                        <button onclick="moveUp(${index}); event.stopPropagation();">U</button>
-                        <button onclick="moveDown(${index}); event.stopPropagation();">D</button>
-                    `}
+        function createCharacterCard(char, index) {
+            return `
+                <div class="character-card">
+                    <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
+                    <div class="character">${char.character}</div>
+                    <div class="next-review">${char.nextReview}</div>
+                    <div class="buttons">
+                        <button onclick="moveUp(${index})">U</button>
+                        <button onclick="moveDown(${index})">D</button>
+                    </div>
                 </div>
-                <button class="close-btn" onclick="closeExpandedCard(this.parentElement, event)">×</button>
             `;
-
-            const card = document.createElement('div');
-            card.className = 'character-card';
-            card.innerHTML = cardContent;
-            card.onclick = (event) => expandCard(card, event);
-
-            return card;
-        }
-
-        function expandCard(card, event) {
-            event.stopPropagation();
-            card.classList.add('expanded');
-            card.querySelector('.close-btn').style.display = 'flex';
-            document.getElementById('overlay').style.display = 'block';
-            document.body.classList.add('card-expanded');
-        }
-
-        function closeExpandedCard(card, event) {
-            event.stopPropagation();
-            card.classList.remove('expanded');
-            card.querySelector('.close-btn').style.display = 'none';
-            document.getElementById('overlay').style.display = 'none';
-            document.body.classList.remove('card-expanded');
-        }
-
-        document.addEventListener('click', function(event) {
-            if (event.target.id === 'overlay') {
-                const expandedCard = document.querySelector('.character-card.expanded');
-                if (expandedCard) {
-                    closeExpandedCard(expandedCard, event);
-                }
-            }
-        });
-
-        function displayReviewCharacters() {
-            const reviewList = document.getElementById('reviewList');
-            reviewList.innerHTML = '';
-            const dueChars = getCharactersForReview();
-            
-            if (dueChars.length > 0) {
-                const grid = document.createElement('div');
-                grid.className = 'character-grid';
-                dueChars.forEach((char, index) => {
-                    grid.appendChild(createCharacterCard(char, index, true));
-                });
-                reviewList.appendChild(grid);
-            } else {
-                reviewList.innerHTML = '<p>No characters due for review today.</p>';
-            }
-
-            document.getElementById('reviewCount').textContent = dueChars.length;
-        }
-
-        function displayCharacters() {
-            const list = document.getElementById('characterList');
-            list.innerHTML = '';
-            
-            for (let degree = 0; degree <= 6; degree++) {
-                const degreeChars = characters.filter(char => char.degree === degree)
-                    .sort((a, b) => a.character.localeCompare(b.character));
-                if (degreeChars.length > 0) {
-                    const section = document.createElement('div');
-                    section.className = 'degree-section';
-                    section.innerHTML = `<div class="degree-title">Degree ${degree}</div>`;
-                    const grid = document.createElement('div');
-                    grid.className = 'character-grid';
-                    degreeChars.forEach((char, index) => {
-                        grid.appendChild(createCharacterCard(char, characters.indexOf(char)));
-                    });
-                    section.appendChild(grid);
-                    list.appendChild(section);
-                }
-            }
-            updateSummary();
         }
 
         function handleNewCharactersKeyPress(event) {
