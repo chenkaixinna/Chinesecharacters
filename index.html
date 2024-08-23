@@ -63,19 +63,20 @@
             left: 50%;
             transform: translate(-50%, -50%);
             width: 90vw;
-            height: 90vh;
-            max-width: 500px;
-            max-height: 500px;
+            height: auto;
+            max-width: 90vw;
+            max-height: 90vh;
             z-index: 1000;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             overflow: auto;
+            padding: 20px;
         }
 
         .character-card.expanded .character {
-            font-size: 120px;
+            font-size: 80px;
             margin-bottom: 20px;
         }
 
@@ -113,7 +114,6 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 999;
-            overflow: hidden;
         }
 
         body.card-expanded {
@@ -494,6 +494,7 @@
             char.nextReview = getNextReviewDate(char.degree, today);
             saveCharacters();
             displayReviewCharacters();
+            closeAllExpandedCards();
         }
 
         function moveToNextDegree(index) {
@@ -504,8 +505,15 @@
             char.nextReview = getNextReviewDate(char.degree, today);
             saveCharacters();
             displayReviewCharacters();
+            closeAllExpandedCards();
         }
 
+
+        function closeAllExpandedCards() {
+            const expandedCards = document.querySelectorAll('.character-card.expanded');
+            expandedCards.forEach(card => closeExpandedCard(card, new Event('click')));
+        }
+        
         function displayCharacters() {
             const list = document.getElementById('characterList');
             list.innerHTML = '';
