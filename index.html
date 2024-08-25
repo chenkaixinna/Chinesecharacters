@@ -258,48 +258,71 @@
         .review-card {
             border: 3px solid #4ecdc4;
             border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
             background-color: #fff;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative; /* For positioning the degree */
         }
-    
+
         .review-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
-    
-        .review-character {
-            font-size: 48px;
+
+        .review-degree {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ffe66d;
             color: #333;
-            margin-bottom: 15px;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
         }
-    
+
+        .review-character {
+            font-size: 72px;
+            color: #333;
+            margin: 30px 0; /* Increased top margin to accommodate the degree */
+        }
+
         .review-buttons {
             display: flex;
-            flex-wrap: wrap;
             justify-content: center;
             gap: 10px;
         }
-    
+
         .review-buttons button {
-            flex: 1 0 30%;
+            padding: 8px 16px;
+            font-size: 14px;
             min-width: 80px;
-            max-width: 120px;
+            max-width: 100px;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-    
+
+        .review-buttons button:hover {
+            background-color: #ff5252;
+        }
+
         @media (max-width: 480px) {
             .review-character {
-                font-size: 36px;
+                font-size: 60px;
             }
-    
+
             .review-buttons button {
-                font-size: 14px;
-                padding: 8px 12px;
+                padding: 6px 12px;
+                font-size: 12px;
             }
         }
         .character-card.placeholder {
@@ -310,6 +333,20 @@
             background-color: #f0f0f0;
             color: #999;
             font-style: italic;
+        }
+
+        .toggleDisplayBtn {
+            background-color: #4ecdc4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .toggleDisplayBtn:hover {
+            background-color: #45b7aa;
         }
     </style>
 </head>
@@ -347,12 +384,18 @@
                     <option value="verb">Verb</option>
                     <option value="adj">Adjective</option>
                     <option value="adv">Adverb</option>
+                    <option value="quan">Quantifier</option>
+                    <option value="num">Numeral</option>
+                    <option value="pre">Preposition</option>
                 </select>
                 <button onclick="addCharacters()">Add</button>
             </div>
         
             <h2>Edit Characters</h2>
-            <input type="text" id="searchCharacters" placeholder="Search characters" onkeyup="searchCharacters()">
+            <div class="input-row">
+                <button id="toggleDisplayBtn" onclick="toggleDisplay()">Display by: Degrees</button>
+                <input type="text" id="searchCharacters" placeholder="Search characters" onkeyup="searchCharacters()">
+            </div>
             <div class="input-row">
                 <select id="moveToDegree">
                     <option value="0">Degree 0</option>
@@ -369,6 +412,9 @@
                     <option value="verb">Verb</option>
                     <option value="adj">Adjective</option>
                     <option value="adv">Adverb</option>
+                    <option value="quan">Quantifier</option>
+                    <option value="num">Numeral</option>
+                    <option value="pre">Preposition</option>
                 </select>
                 <button onclick="applyBatchProperty()">Apply Property</button>
                 <button onclick="deleteSelected()">Delete</button>
@@ -503,7 +549,7 @@
         
         function displayCharactersByProperties() {
             const list = document.getElementById('characterList');
-            const properties = ['noun', 'verb', 'adj', 'adv', ''];
+            const properties = ['noun', 'verb', 'adj', 'adv', 'quan', 'num', 'pre', ''];
             
             properties.forEach(prop => {
                 const propChars = characters.filter(char => char.property === prop);
@@ -554,6 +600,7 @@
                     const card = document.createElement('div');
                     card.className = 'review-card';
                     card.innerHTML = `
+                        <div class="review-degree">Degree ${char.degree}</div>
                         <div class="review-character">${char.character}</div>
                         <div class="review-buttons">
                             <button onclick="reviewCharacter(${index}, 1)">+</button>
@@ -564,7 +611,7 @@
                     reviewList.appendChild(card);
                 });
             }
-        
+
             updateSummary();
         }
 
