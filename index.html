@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chinese Character Fun</title>
+    <title>Chinese Character SRS</title>
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: 'Comic Neue', cursive;
@@ -78,13 +79,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        .degree-title {
-            font-size: 28px;
-            margin-top: 15px;            
-            margin-bottom: 15px;
-            color: #ff6b6b;
-            text-align: center;
         }
         .tabs {
             display: flex;
@@ -260,6 +254,63 @@
                 font-size: 14px;
             }
         }
+        
+        .review-card {
+            border: 3px solid #4ecdc4;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    
+        .review-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+    
+        .review-character {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+    
+        .review-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+    
+        .review-buttons button {
+            flex: 1 0 30%;
+            min-width: 80px;
+            max-width: 120px;
+        }
+    
+        @media (max-width: 480px) {
+            .review-character {
+                font-size: 36px;
+            }
+    
+            .review-buttons button {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+        }
+        .character-card.placeholder {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            background-color: #f0f0f0;
+            color: #999;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -269,11 +320,11 @@
         <div class="summary" id="summary"></div>
 
         <div class="tabs">
-            <div class="tab" onclick="showTab('reviewTab')">Review</div>
+            <div class="tab active" onclick="showTab('reviewTab')">Review</div>
             <div class="tab" onclick="showTab('inputTab')">Input</div>
         </div>
 
-        <div id="reviewTab" class="tab-content">
+        <div id="reviewTab" class="tab-content active">
             <h2>Characters Due for Review</h2>
             <div id="reviewList"></div>
         </div>
@@ -289,11 +340,17 @@
                     <option value="3">Degree 3</option>
                     <option value="4">Degree 4</option>
                     <option value="5">Degree 5</option>
-                    <option value="6">Degree 6</option>
+                </select>
+                <select id="newProperty">
+                    <option value="">Select Property</option>
+                    <option value="noun">Noun</option>
+                    <option value="verb">Verb</option>
+                    <option value="adj">Adjective</option>
+                    <option value="adv">Adverb</option>
                 </select>
                 <button onclick="addCharacters()">Add</button>
             </div>
-
+        
             <h2>Edit Characters</h2>
             <input type="text" id="searchCharacters" placeholder="Search characters" onkeyup="searchCharacters()">
             <div class="input-row">
@@ -304,18 +361,24 @@
                     <option value="3">Degree 3</option>
                     <option value="4">Degree 4</option>
                     <option value="5">Degree 5</option>
-                    <option value="6">Degree 6</option>
                 </select>
                 <button onclick="moveSelectedToDegree()">Move</button>
+                <select id="batchProperty">
+                    <option value="">Select Property</option>
+                    <option value="noun">Noun</option>
+                    <option value="verb">Verb</option>
+                    <option value="adj">Adjective</option>
+                    <option value="adv">Adverb</option>
+                </select>
+                <button onclick="applyBatchProperty()">Apply Property</button>
                 <button onclick="deleteSelected()">Delete</button>
             </div>
             <div id="characterList"></div>
         </div>
 
         <div class="import-export">
-            <h2>Import/Export</h2>
             <input type="file" id="importFile" accept=".xlsx,.xls,.csv">
-            <button onclick="document.getElementById('importFile').click(); importCharacters()">Import</button>
+            <button onclick="document.getElementById('importFile').click()">Import</button>
             <button onclick="exportCharacters()">Export</button>
             <button onclick="clearCharacters()">Clear</button>
         </div>
@@ -323,29 +386,41 @@
         <div id="notification" class="notification"></div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script>
         let characters = JSON.parse(localStorage.getItem('characters')) || [];
         let selectedIndices = [];
+        let displayMode = 'degrees'; // 'degrees' or 'properties'
+        
+        function toggleDisplay() {
+            displayMode = displayMode === 'degrees' ? 'properties' : 'degrees';
+            const toggleBtn = document.getElementById('toggleDisplayBtn');
+            toggleBtn.textContent = `Display by: ${displayMode.charAt(0).toUpperCase() + displayMode.slice(1)}`;
+            displayCharacters();
+        }
 
+        function saveCharacters() {
+            localStorage.setItem('characters', JSON.stringify(characters));
+        }
 
         function addCharacters() {
             const newCharsText = document.getElementById('newCharacters').value.trim();
             const newDegree = parseInt(document.getElementById('newDegree').value);
+            const newProperty = document.getElementById('newProperty').value; // Make sure this element exists in your HTML
             const today = new Date().toISOString().split('T')[0];
-
+        
             if (newCharsText) {
                 const newChars = newCharsText.split('').filter(char => char.trim() !== '');
                 const addedChars = [];
                 const duplicates = [];
-
+        
                 newChars.forEach(char => {
                     if (!characters.some(existingChar => existingChar.character === char)) {
                         characters.push({
                             character: char,
                             degree: newDegree,
                             nextReview: getNextReviewDate(newDegree, today),
-                            lastReviewed: today
+                            lastReviewed: today,
+                            property: newProperty
                         });
                         addedChars.push(char);
                     } else {
@@ -355,7 +430,7 @@
 
                 if (addedChars.length > 0) {
                     saveCharacters();
-                    displayCharacters();
+                    displayCharacters(); // This now respects the current display mode
                     document.getElementById('newCharacters').value = '';
                     showNotification(`Added ${addedChars.length} new character(s): ${addedChars.join(', ')}`, 'success');
                 }
@@ -372,160 +447,149 @@
             }
         }
 
-        function getCharactersForReview() {
-            const today = new Date().toISOString().split('T')[0];
-            return characters.filter(char => char.nextReview <= today);
-        }
-
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
-            if (tabId === 'reviewTab') {
-                displayReviewCharacters();
-            } else if (tabId === 'inputTab') {
-                displayCharacters();
+        function getNextReviewDate(degree, lastReview) {
+            const date = new Date(lastReview);
+            switch(degree) {
+                case 0: return date.toISOString().split('T')[0]; // Today
+                case 1: date.setDate(date.getDate() + 1); break; // Tomorrow
+                case 2: date.setDate(date.getDate() + 7); break; // 7 days later
+                case 3: date.setDate(date.getDate() + 14); break; // 14 days later
+                case 4: date.setDate(date.getDate() + 30); break; // 30 days later
+                case 5: return '9999-12-31'; // Far future date for "don't review"
             }
-        }
-
-        function displayReviewCharacters() {
-            const reviewList = document.getElementById('reviewList');
-            reviewList.innerHTML = '';
-            const dueChars = getCharactersForReview();
-            
-            if (dueChars.length > 0) {
-                const grid = document.createElement('div');
-                grid.className = 'character-grid';
-                grid.innerHTML = dueChars.map((char, index) => createReviewCard(char, index)).join('');
-                reviewList.appendChild(grid);
-            } else {
-                reviewList.innerHTML = '<p>No characters due for review today.</p>';
-            }
-
-            document.getElementById('reviewCount').textContent = dueChars.length;
-        }
-
-        function createReviewCard(char, index) {
-            return `
-                <div class="character-card">
-                    <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
-                    <div class="degree">${char.degree}</div>
-                    <div class="character">${char.character}</div>
-                    <div class="buttons">
-                        <button onclick="keepDegree(${index})">K</button>
-                        <button onclick="moveToNextDegree(${index})">M</button>
-                    </div>
-                    <div class="next-review">${char.nextReview}</div>
-                </div>
-            `;
-        }
-
-        function keepDegree(index) {
-            const char = getCharactersForReview()[index];
-            const today = new Date().toISOString().split('T')[0];
-            char.lastReviewed = today;
-            char.nextReview = getNextReviewDate(char.degree, today);
-            saveCharacters();
-            displayReviewCharacters();
-        }
-
-        function moveToNextDegree(index) {
-            const char = getCharactersForReview()[index];
-            const today = new Date().toISOString().split('T')[0];
-            char.degree = Math.min(char.degree + 1, 6);  // Max degree is 6
-            char.lastReviewed = today;
-            char.nextReview = getNextReviewDate(char.degree, today);
-            saveCharacters();
-            displayReviewCharacters();
+            return date.toISOString().split('T')[0];
         }
 
         function displayCharacters() {
             const list = document.getElementById('characterList');
             list.innerHTML = '';
             
-            for (let degree = 0; degree <= 6; degree++) {
-                const degreeChars = characters.filter(char => char.degree === degree)
-                    .sort((a, b) => a.character.localeCompare(b.character)); // Sort characters alphabetically
+            if (displayMode === 'degrees') {
+                displayCharactersByDegrees();
+            } else {
+                displayCharactersByProperties();
+            }
+            
+            updateSummary();
+        }
+        
+        function displayCharactersByDegrees() {
+            const list = document.getElementById('characterList');
+            
+            for (let degree = 0; degree <= 5; degree++) {
+                const degreeChars = characters.filter(char => char.degree === degree);
+                const degreeSection = document.createElement('div');
+                degreeSection.innerHTML = `<h3>Degree ${degree}</h3>`;
+                const degreeGrid = document.createElement('div');
+                degreeGrid.className = 'character-grid';
+                
                 if (degreeChars.length > 0) {
-                    const section = document.createElement('div');
-                    section.className = 'degree-section';
-                    section.innerHTML = `
-                        <div class="degree-title">Degree ${degree}</div>
-                        <div class="character-grid">
-                            ${degreeChars.map((char, index) => createCharacterCard(char, characters.indexOf(char))).join('')}
+                    degreeChars.forEach((char) => {
+                        const card = createCharacterCard(char);
+                        degreeGrid.appendChild(card);
+                    });
+                } else {
+                    // Add a placeholder message when there are no characters for this degree
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'character-card placeholder';
+                    placeholder.textContent = 'No characters in this degree';
+                    degreeGrid.appendChild(placeholder);
+                }
+                
+                degreeSection.appendChild(degreeGrid);
+                list.appendChild(degreeSection);
+            }
+        }
+        
+        function displayCharactersByProperties() {
+            const list = document.getElementById('characterList');
+            const properties = ['noun', 'verb', 'adj', 'adv', ''];
+            
+            properties.forEach(prop => {
+                const propChars = characters.filter(char => char.property === prop);
+                if (propChars.length > 0) {
+                    const propSection = document.createElement('div');
+                    propSection.innerHTML = `<h3>${prop ? prop.charAt(0).toUpperCase() + prop.slice(1) : 'No Property'}</h3>`;
+                    const propGrid = document.createElement('div');
+                    propGrid.className = 'character-grid';
+                    
+                    propChars.forEach((char) => {
+                        const card = createCharacterCard(char);
+                        propGrid.appendChild(card);
+                    });
+                    
+                    propSection.appendChild(propGrid);
+                    list.appendChild(propSection);
+                }
+            });
+        }
+        
+        function createCharacterCard(char) {
+            const globalIndex = characters.indexOf(char);
+            const card = document.createElement('div');
+            card.className = 'character-card';
+            card.innerHTML = `
+                <input type="checkbox" class="checkbox" onchange="toggleSelection(${globalIndex})">
+                <div class="degree">${char.degree}</div>
+                <div class="character">${char.character}</div>
+                <div class="property">${char.property || 'N/A'}</div>
+                <div class="buttons">
+                    <button onclick="adjustDegree(${globalIndex}, 1)">+</button>
+                    <button onclick="adjustDegree(${globalIndex}, -1)">-</button>
+                </div>
+                <div class="next-review">${char.nextReview}</div>
+            `;
+            return card;
+        }
+        function displayReviewCharacters() {
+            const reviewList = document.getElementById('reviewList');
+            reviewList.innerHTML = '';
+            const today = new Date().toISOString().split('T')[0];
+            const dueChars = characters.filter(char => char.nextReview <= today);
+            
+            if (dueChars.length === 0) {
+                reviewList.innerHTML = '<p>No characters due for review today.</p>';
+            } else {
+                dueChars.forEach((char, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'review-card';
+                    card.innerHTML = `
+                        <div class="review-character">${char.character}</div>
+                        <div class="review-buttons">
+                            <button onclick="reviewCharacter(${index}, 1)">+</button>
+                            <button onclick="reviewCharacter(${index}, 0)">0</button>
+                            <button onclick="reviewCharacter(${index}, -1)">-</button>
                         </div>
                     `;
-                    list.appendChild(section);
-                }
+                    reviewList.appendChild(card);
+                });
             }
+        
             updateSummary();
         }
 
-        function createCharacterCard(char, index) {
-            return `
-                <div class="character-card">
-                    <input type="checkbox" class="checkbox" onchange="toggleSelection(${index})">
-                    <div class="character">${char.character}</div>
-                    <div class="next-review">${char.nextReview}</div>
-                    <div class="buttons">
-                        <button onclick="moveUp(${index})">U</button>
-                        <button onclick="moveDown(${index})">D</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function handleNewCharactersKeyPress(event) {
-            if (event.key === 'Enter') {
-                addCharacters();
+        function reviewCharacter(index, result) {
+            const char = characters[index];
+            const today = new Date().toISOString().split('T')[0];
+            
+            if (result === 1) {
+                char.degree = Math.min(5, char.degree + 1);
+            } else if (result === -1) {
+                char.degree = 0;
             }
-        }
-
-        function moveUp(index) {
-            const char = characters[index];
-            const today = new Date().toISOString().split('T')[0];
-            char.degree = Math.min(char.degree + 1, 6); // Move up a degree, max is 6
+            
             char.lastReviewed = today;
             char.nextReview = getNextReviewDate(char.degree, today);
+            
             saveCharacters();
-            displayCharacters();
+            displayReviewCharacters();
         }
 
-        function moveDown(index) {
-            const char = characters[index];
-            const today = new Date().toISOString().split('T')[0];
-            char.degree = Math.max(char.degree - 1, 0); // Move down a degree, min is 0
-            char.lastReviewed = today;
-            char.nextReview = getNextReviewDate(char.degree, today);
+        function adjustDegree(index, change) {
+            characters[index].degree = Math.max(0, Math.min(5, characters[index].degree + change));
+            characters[index].nextReview = getNextReviewDate(characters[index].degree, new Date().toISOString().split('T')[0]);
             saveCharacters();
             displayCharacters();
-        }
-
-        function updateDegrees(indices, newDegree) {
-            const today = new Date().toISOString().split('T')[0];
-            characters = characters.map((char, index) => {
-                if (indices.includes(index)) {
-                    return {
-                        ...char,
-                        degree: newDegree,
-                        nextReview: getNextReviewDate(newDegree, today),
-                        lastReviewed: today
-                    };
-                }
-                return char;
-            });
-            saveCharacters();
-            displayCharacters();
-            selectedIndices = [];
-            showNotification('Characters updated successfully!', 'success');
-        }
-
-        function getNextReviewDate(degree, lastReviewDate) {
-            const days = [1, 2, 4, 7, 15, 30, 90][degree];
-            const date = new Date(lastReviewDate);
-            date.setDate(date.getDate() + days);
-            return date.toISOString().split('T')[0];
         }
 
         function toggleSelection(index) {
@@ -539,140 +603,38 @@
 
         function moveSelectedToDegree() {
             const degree = parseInt(document.getElementById('moveToDegree').value);
-            updateDegrees(selectedIndices, degree);
-        }
-
-        function updateDegrees(indices, newDegree) {
             const today = new Date().toISOString().split('T')[0];
-            characters = characters.map((char, index) => {
-                if (indices.includes(index)) {
-                    return {
-                        ...char,
-                        degree: newDegree,
-                        nextReview: getNextReviewDate(newDegree),
-                        lastReviewed: today
-                    };
-                }
-                return char;
+            selectedIndices.forEach(index => {
+                characters[index].degree = degree;
+                characters[index].nextReview = getNextReviewDate(degree, today);
             });
             saveCharacters();
-            displayCharacters();
+            displayCharacters(); // This now respects the current display mode
             selectedIndices = [];
-            showNotification('Characters updated successfully!', 'success');
+            showNotification('Selected characters moved successfully!', 'success');
+        }
+
+        function applyBatchProperty() {
+            const property = document.getElementById('batchProperty').value;
+            if (property) {
+                selectedIndices.forEach(index => {
+                    characters[index].property = property;
+                });
+                saveCharacters();
+                displayCharacters(); // This now respects the current display mode
+                selectedIndices = [];
+                showNotification('Property applied to selected characters successfully!', 'success');
+            } else {
+                showNotification('Please select a property to apply.', 'warning');
+            }
         }
 
         function deleteSelected() {
             characters = characters.filter((_, index) => !selectedIndices.includes(index));
             saveCharacters();
-            displayCharacters();
+            displayCharacters(); 
             selectedIndices = [];
             showNotification('Selected characters deleted successfully!', 'success');
-        }
-
-        function saveCharacters() {
-            localStorage.setItem('characters', JSON.stringify(characters));
-        }
-
-        function showNotification(message, type = 'error') {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.display = 'block';
-            switch(type) {
-                case 'success':
-                    notification.style.backgroundColor = '#d4edda';
-                    notification.style.color = '#155724';
-                    break;
-                case 'warning':
-                    notification.style.backgroundColor = '#fff3cd';
-                    notification.style.color = '#856404';
-                    break;
-                case 'info':
-                    notification.style.backgroundColor = '#d1ecf1';
-                    notification.style.color = '#0c5460';
-                    break;
-                default:
-                    notification.style.backgroundColor = '#f8d7da';
-                    notification.style.color = '#721c24';
-            }
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 5000);  // Display for 5 seconds
-        }
-
-        function updateSummary() {
-            const totalCharacters = characters.length;
-            const today = new Date().toISOString().split('T')[0];
-            const dueCharacters = characters.filter(char => char.nextReview <= today).length;
-            const summary = document.getElementById('summary');
-            summary.innerHTML = `
-                <strong>Total Characters:</strong> ${totalCharacters} | 
-                <strong>Due for Review Today:</strong> ${dueCharacters}
-            `;
-        }
-
-        function exportCharacters() {
-            const ws = XLSX.utils.json_to_sheet(characters.map(char => ({
-                character: char.character,
-                degree: char.degree,
-                nextReview: char.nextReview
-            })));
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Characters");
-            XLSX.writeFile(wb, "chinese_characters_srs.xlsx");
-        }
-
-        function importCharacters() {
-            const fileInput = document.getElementById('importFile');
-            const file = fileInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[sheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet);
-                    
-                    const duplicates = [];
-                    const newCharacters = json.filter(row => {
-                        if (characters.some(char => char.character === row.character)) {
-                            duplicates.push(row.character);
-                            return false;
-                        }
-                        return true;
-                    }).map(row => ({
-                        character: row.character,
-                        degree: parseInt(row.degree),
-                        nextReview: row.nextReview,
-                        lastReviewed: new Date().toISOString().split('T')[0]
-                    }));
-
-                    if (newCharacters.length > 0) {
-                        characters = [...characters, ...newCharacters];
-                        saveCharacters();
-                        displayCharacters();
-                        showNotification(`Imported ${newCharacters.length} new characters successfully!`, 'success');
-                    }
-
-                    if (duplicates.length > 0) {
-                        showNotification(`Skipped ${duplicates.length} duplicate characters: ${duplicates.join(', ')}`, 'warning');
-                    }
-
-                    if (newCharacters.length === 0 && duplicates.length === 0) {
-                        showNotification('No new characters to import.', 'info');
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            }
-        }
-
-        function clearCharacters() {
-            if (confirm("Are you sure you want to clear all characters? This action cannot be undone.")) {
-                characters = [];
-                saveCharacters();
-                displayCharacters();
-                showNotification('All characters have been cleared!', 'success');
-            }
         }
 
         function searchCharacters() {
@@ -688,12 +650,94 @@
             });
         }
 
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+            if (tabId === 'reviewTab') {
+                displayReviewCharacters();
+            } else if (tabId === 'inputTab') {
+                displayCharacters();
+            }
+        }
+
+        function updateSummary() {
+            const totalCharacters = characters.length;
+            const today = new Date().toISOString().split('T')[0];
+            const dueCharacters = characters.filter(char => char.nextReview <= today).length;
+            const summary = document.getElementById('summary');
+            summary.innerHTML = `
+                <strong>Total Characters:</strong> ${totalCharacters} | 
+                <strong>Due for Review Today:</strong> ${dueCharacters}
+            `;
+        }
+
+        function exportCharacters() {
+            const dataToExport = characters.map(char => ({
+                character: char.character,
+                degree: char.degree,
+                nextReview: char.nextReview,
+                lastReviewed: char.lastReviewed,
+                property: char.property
+            }));
+        
+            const ws = XLSX.utils.json_to_sheet(dataToExport);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Characters");
+            XLSX.writeFile(wb, "chinese_characters_srs.xlsx");
+        }
+
+        function importCharacters() {
+            const file = document.getElementById('importFile').files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+                
+                characters = json.map(row => ({
+                    character: row.character,
+                    degree: parseInt(row.degree),
+                    nextReview: row.nextReview,
+                    lastReviewed: row.lastReviewed,
+                    property: row.property || '' // Use an empty string if property is undefined
+                }));
+        
+                saveCharacters();
+                displayCharacters();
+                showNotification('Characters imported successfully!', 'success');
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function clearCharacters() {
+            if (confirm('Are you sure you want to clear all characters? This action cannot be undone.')) {
+                characters = [];
+                saveCharacters();
+                displayCharacters();
+                showNotification('All characters have been cleared!', 'success');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            notification.className = 'notification ' + type;
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
         // Initial load
         document.addEventListener('DOMContentLoaded', function() {
             showTab('reviewTab');
-            document.getElementById('newCharacters').addEventListener('keypress', handleNewCharactersKeyPress);
+            document.getElementById('importFile').addEventListener('change', importCharacters);
+            displayCharacters(); // This will use the default 'degrees' mode on initial load
         });
-
     </script>
 </body>
 </html>
