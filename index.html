@@ -547,12 +547,20 @@
             }
         }
         
+
+        
         function displayCharactersByProperties() {
             const list = document.getElementById('characterList');
-            const properties = ['noun', 'verb', 'adj', 'adv', 'quan', 'num', 'pre', ''];
+            const properties = ['noun', 'verb', 'adj', 'adv', 'quan', 'num', 'pre', 'N/A', ''];
             
             properties.forEach(prop => {
-                const propChars = characters.filter(char => char.property === prop);
+                let propChars;
+                if (prop === '') {
+                    propChars = characters.filter(char => !char.property || char.property.trim() === '');
+                } else {
+                    propChars = characters.filter(char => char.property === prop);
+                }
+                
                 if (propChars.length > 0) {
                     const propSection = document.createElement('div');
                     propSection.innerHTML = `<h3>${prop ? prop.charAt(0).toUpperCase() + prop.slice(1) : 'No Property'}</h3>`;
